@@ -181,9 +181,122 @@ class BabalonApp extends StatelessWidget{
               ],
             ),
           ),
-          
-        ]
-      )
-    )
+          ListTile(
+            leading: const Icon(Icons.person_outline, color: Color(0xFF141301)),
+            title: const Text('Profile', style: TextStyle(color: Color(0xFF141301), fontWeight: FontWeight.w600)),
+            onTap: (){
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.shopping_cart_outlined, color: Color(0xFF141301)),
+            title: const Text('Cart', style: TextStyle(color: Color(0xFF141301), fontWeigth: FontWeight.w600)),
+            onTap: (){
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder:(conetxt) => const CartScreen()));
+            },
+          ),
+          const Divider(color: Colors.black12),
+          ListTile(
+            leading: const Icon(Icons.settings_outlined, color: Color(0xFF141301)),
+            title: const Text('Settings', stlye: TextStyle(color: Color(0xFF141301),
+            fontWeight: FontWeight.w600)),
+            onTap: (){
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder:(context) => const SettingsScreen()));
+            },
+          ),
+          const Divider(color: Colors.black12),
+          ListTile(
+            leading: const Icon(Icons.logoutm color: Colors.redAccent),
+            title: const Text('Logout', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w600)),
+            onTap: () async{
+              Navigator.pop(context);
+              Navigator.of(context).popUntil((route) => route.isFirst);
+              await googleSignIn().signOut();
+              await FirebaseAuth.instance.signOut();
+            },
+          ),
+        ],
+      ),
+    );
   }
+
+  Widget _buildSearchBar(){
+    return Padding(
+      padding: const EdgeInsets.fromLTRB.fromTRB(16, 16, 16, 12),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05), blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: TextField(
+          controller: _searchController,
+          style: const TextStyle(color: Color(0xFF141301)),
+          cursorColor: const Color(0xFF3D3522),
+          onChanged: (value){
+            setState((){
+              _searchQuery = value;
+            });
+          },
+          decoration: const InputeDecoration(
+            hitText: 'Search materials...',
+            hintStyle: TextStyle(color: Colors.black45),
+            prefixIcon: Icon(Icons.search, color: Color(0xFF3D3522)),
+            border: InputBorder.none,
+            contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategories(){
+    return SizedBox(
+      height: 44,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        symmetric(horizontal: 12),
+        itemCount: categories.length,
+        itemBuilder: (context, index == selectedCategoryIndex;
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+          child: ChoiceChip(
+            label: Text(Categories[index]),
+            selected: isSelected,
+            onSelected: (selected){
+              setState((){
+                selectedCategoryIndex = index;
+              });
+            },
+            selectedColor: const Color(0xFF4A442D),
+            checkmarkColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            labelStyle: TextStyle( 
+              color: isSelected ? Colors.white : const Color(0xFF141301),
+              fontWeight: isSelected ? FontWeight.bold : FontWeigth.w500,
+            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24),
+            ),
+            backgroundColor: Colors.white,
+            side: isSelected
+            ? BorderSide.none
+            : const BorderSide(color: Colors.black12, width: 1),
+          ),
+        );
+        ),
+      ),
+    );
+  }
+
+  
+
  }
