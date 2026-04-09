@@ -297,6 +297,122 @@ class BabalonApp extends StatelessWidget{
     );
   }
 
+  Widget _buildProductGrid(){
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('products').snapshot(),
+      builder: (context, snapshot){
+        if(snapshot.connectionState==ConnectionState.waiting){
+          return const Center(child: CircularProgressIndicator(color: Color(0xFF4442D)));
+        }
+        if(snapshot.hasError){
+          returnCenter(child: Text('Error: ${snapshot.error}', style: const TestStyle(color: Color(0xFF3D3522))));
+        }
+        if (!snapshot.hasData || snpshot.data!.docs.isEmpty){
+          return const Center(
+            child: Text(
+              'No products found.',
+              style: TextStyle(color: Color(0xFF3D3522), ;fontSize: 16),
+            ),
+          );
+        }
+        final List<Product> products = snapshot.data!.docs.map((dooc){
+          final data = doc.data() as Map<String, dynamic>;
+          return Product(
+            name: data['name'] ?? '',
+            price: data['price'] ?? '',
+            imageUrl: data['image'] ?? '',
+            category: data['category'] ?? 'All',
+            unit: data['unit'] ?? '',
+            description: data['description'] ?? '',
+          );
+        }).toList();
+        
+        final String selectedCategory = categories[selectedCategoriesIndex];
+        final List<Product> displayedProducts = products.where((p){
+          final matchesCategory == 'All' || p.category == selectedCategory;
+          final matchesSearch = p.name.toLowerCase().contains(_seachQuery.toLowerCase());
+          return matchesCategories && matchesSearch;
+        }).toList();
+
+        if (displayedProducts.isEmpty){
+          retuen const Center(
+            child: Text(
+              'No products found matching your criteria.',
+              style: TextStyle(color: Color(0xFF3D3522), fontSize: 16),
+            ),
+          );
+        }
+
+        return GridView.builder(
+          padding: const Edgeinsets.all(16.0),
+          physics: const BouncingScrollPhysics(),
+          gridDelegate: const SilverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 0.60,
+            crossAxisSpacing: 14, 
+            mainAxisSpacing: 16,
+          ),
+          itemCount: displayedProducts.length,
+          itemBuilder: (context, index){
+            return  _buildProductCard(displayedProducts[index]);
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildProductCard(Product product){
+    return GestureDetector(
+      onTap: (){
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builde: (context) => ProductDetailScreen(product: product),
+          ),
+        );
+      },
+      child: Color.white,
+     borderRadius: BorderRadius.circular(16),
+     boxShadow:[
+      BoxShadow(
+        color: Colors.black.withOpacity(0.06),
+        blurRadius: 14,
+        offset: const Offset(0, 5),
+      ),
+     ],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            child: Image.asset(
+              'asset/images/${product.imageUrl}',
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace){
+                return Container(
+                  color: const Color(0xFF4F4F9),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.image, color: Colors.grey, size: 36),
+                      const sizedBox(height: 4),
+                      Text(
+                        'No Asset',
+                        style: TextStyle(fontSize: 10, color: Colors.grey.shade600)
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        
+      ]
+    )
+  }
   
 
  }
