@@ -1,6 +1,6 @@
 {
-    "name": "babon",
-    "short_name": "babon",
+    "name": "babon_ag",
+    "short_name": "babon_ag",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
