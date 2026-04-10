@@ -698,4 +698,182 @@ class BabalonApp extends StatelessWidget{
   }
  }
 
+bottomNavigationBar: Container(
+  padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+  decoration: BoxDecoration(
+    color: Colors.white,
+    boxShadow: [
+      BoxShadow(
+        color: Colors.black.withOpacity(0.05),
+        offset: const Offset(0, -4)
+        blurRadius: 10,
+      )
+    ]
+  ),
+  chlid: Row(
+    children: [
+      Expanded(
+        flex:1,
+        child: OutlinedButton.icon(
+          onPressed: (){
+            addToCartInFirestore(context, widget.product, quantity: quantity);
+          },
+          icon: const Icon(Icons.add_shopping_cart),
+          label: const Text('Cart', style: TextStyle(fontWeight: FontWeight: OutlinedButton.styleFrom(
+            foregroundColor: const Color(0xFF3D3522),
+            side: const BorderSide(color: Color(0xFF3D3522), width: 1.5),
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 2,
+            child: ElevatedButton.icon(
+              onPressed: (){
+                createOrderAndOpenWhatApp(context, widget.product, quantity);
+              },
+              icon: const Icon(Icons.chat_bubble_outline),
+              label: const Text('Order Now', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              style: ElevatedButton.styleFrom(
+                backkgroundColor: const Color(0xFF25D366),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ],
+  )
+)
+
+class CartScreen extends StatelessWidget{
+  const CartScreen({super.key});
+
+  Future<void> _removeItem(String docId) async{
+    final user = FirebaseAuth.instance.currentUser;
+    if(user != null){
+      try{
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).collection('cart').doc(docId).delete();
+      }catch(e){
+        print('Error removing item: $e');
+      }
+    }
+  }
+  Future<void> _clearCart() async{
+    final user = FirebaseAuth.instance.currentUser;
+    if(user != null){
+      try{
+        final cartRef = FirebaseFirestore.instance.collection('users').doc(user.uid).collection('cart');
+        final snapshot = await cartRef.get();
+        for(final doc in snapshot.docs){
+          await doc.reference.delete();
+        }
+      }catch(e){
+        print('Error clearing cart: $e');
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context){
+    final user = FirebaseAuth.instance.currentUser;
+    if(user == null){
+      return Scaffold(
+        appBar: AppBar(title: const Text('My Cart')),
+        body: const Center(child: Text('Please log in to view cart.')),
+      );
+    }
+    return Scaffold(
+      backgroundColor: const Color(0xFFF2F6D0),
+      appBar: AppBar(
+        title: const Text('My Cart', style: TextStyle(fontWeight: FontWeight.bold)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_sweep),
+            tooltip: 'Clear Cart',
+            onPressed: () => _clearCart(),
+          ),
+        ],
+      ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('cart')
+        .snapshots(),
+        builder: (context, snapshot){
+          if(snapshot.connectionState == ConnectionState.waiting){
+            return const Center(child: CircularProgressIndicator(color: Color(0xFF4A442D)));
+          }
+          if(snapshot.hasError){
+            return Center(child: Text('Error loading cart: ${snapshot.error}'));
+          }
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty){
+            return const Center(
+              child: Text('Cart is empty',
+              style: TextStyle(fontSize: 18, Color(0xFF4A442D), fontWeight: FontWeight.bold),
+              ),
+            );
+          }
+          final cartDocs = snapshot.data!.docs;
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: cartDocs.length,
+            itemBuilder: (context, index){
+              final doc = cartDocs[index];
+              final data = doc.data() as Map<String, dynamics>;
+
+              final String name = data['productName'] ?? 'Unknown';
+              final String price = data['price'] ?? '0';
+              final String img = data['image'] ?? '';
+              final String qty = data['quantity'] ?? 1;
+
+              return Card(
+                color: COlors.white,
+                elevation: 2,
+                margin: const EdgeInsets.only(bottom: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.all(12),
+                  leading: ClipRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.asset(
+                      'asset/image/$img',
+                      width: 60,
+                      height: 60,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stactTrace) => 
+                      Container(width: 60, height: 60, color: Colors.grey.shade200, child: const Icon(Icons.image)),
+                  ),
+                ),
+                title: Text(
+                  name,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF141301)),
+                ),
+                subtitle: Text(
+                  'Qty: $qty\n$price',
+                  style: const TextStyle(color: Color(0xFF3D3522),
+                  fontWeight: FontWeight.w600),
+                ),
+                isThreeLine: true,
+                trailling: IconButton(
+                  icon: const Icon(Icons.remove_circle, color: Colors.redAccent),
+                  onPressed: () => _removeItem(doc.id),
+                ),
+              ),
+            };
+          ),
+        };
+      ),
+    ),
+  };
+}
 
