@@ -1128,4 +1128,145 @@ class _SettingsScreenState extends State<SettingsScreen>{
   }
 }
 
+class AuthChecker extends StatelessWidget{
+  const AuthChecker({super.key});
 
+  @override
+  Widget build(BuildContext context){
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot){
+        if(snapshot,connectionState == ConnectionState.waiting){
+          return const Scaffold(
+            backgroundColor: (0xFFF2F6D0),
+            body: Center(child:CircularProgressIndicator(color: Color(0xFF4A442D))),
+          );
+        }
+        if(snapshot.hasData){
+          return const Scaffold(
+            backgroundColor: Color(0xFFF2F6D0),
+            body: Center(child: CircularProgressIndicator(color: Color(0xFF4A442D))),
+          );
+        }
+        if(snapshot.hasData){
+          return const HomeScreen();
+        }else{
+          return const LoginScreen();
+        }
+      },
+    );
+  }
+}
+
+class LoginScreen extends StatefulWidget{
+  const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState extends State<LoginScreen>{
+    bool isLoading = false;
+
+    Future<void> SignInWithGoogle() async{
+      setState(() {
+        isLoading = true;
+      });
+      try{
+        final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn()l
+        if(googleUser == null){
+          setState((){
+            isLoading = false;
+          });
+          return;
+        }
+
+        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+        final AuthCredential credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+
+        final UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+        final User? user = userCredential.user;
+        if(user != null){
+          final DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+          if(!userDoc.exists){
+            await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+              'name': user.displayName ?? '',
+              'email': user.email ?? '',
+              'createdAt': FieldValue.serverTimestamp(),
+            });
+          }
+        }
+      }catch(e){
+        if(mounted){
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Login failed: ${e.toString()}'),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
+        setState(({
+          isLoading = false;
+        });
+        )
+      }
+    }
+
+    @override 
+    Widget build(BuildContext context){
+      return Scaffold(
+        backgroundColor: const Color(0xFFF2F6D0),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0)
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  'Babalon',
+                  style: TextStyle(
+                    fontSize: 56,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.5,
+                    color: Color(0xFF4A442D),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Construction Material On Demand',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Color(0xFF3D3522),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 60),
+                isLoading
+                  ?const CircularProgressIndicator(color: Color(0xFF4A442D))
+                  :ElevatedButton.icon(
+                    onPressed:signInWithGoogle,
+                    icon: const FaIcon(FontAwesomeIcons.google, color: Colors.blueAccent),
+                    label: const Text(
+                      'Sign in with Google',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF141301),
+                      elevation: 2,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    };
+  }
+}
