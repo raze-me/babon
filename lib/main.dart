@@ -409,10 +409,293 @@ class BabalonApp extends StatelessWidget{
             ),
           ),
         ),
-        
-      ]
-    )
-  }
-  
 
+        Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            crossAxisAlignment: CrossxisAlignment.start,
+            children: {
+              Text(
+                product.name,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: Color(0xFF141301),
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                product.price,
+                style: const TextStyle(
+                  color: Color(0xFF3D3522),
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              Row(
+                children: [
+                  Expanded(
+                    flex:6,
+                    child: ElevtedButton.icon(
+                      onPressed:(){
+                        createOrderAndOpenWhatsApp(context, product, 1);
+                      },
+                      style: ElevatedButton.styleForm(
+                        backgroundColor: const Color(0xFF25D366),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      icon: const Icon(Icons.chat_bubble_outline, size: 14),
+                      label: const Text(
+                        'Order',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    flex: 3,
+                    child: OutlinedButton(
+                      onPressed:(){
+                        addToCartInFirestore(context, product, quantity: 1);
+                      },
+                      style: OutlineButton.styleFrom(
+                        foregroundColor: const Color(0xFF3D3522),
+                        side: const BorderSide(color: Color(0xFF3D3522), widht: 1.5),
+                        padding: const EdgeInsets.symmetric(vertical:8, horizontal: 0),
+                        shape: RoundedRectangeleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Icon(Icons.add_shopping_cart, size: 16),
+                    ),
+                  ),
+                ],
+              ),
+            },
+          ),
+        ),
+      ],
+    );
+  }
  }
+
+
+ class ProductDetailScreen extends StatefulWidget{
+  final Product product;
+  const ProductDetilScreen({super.key, requrired this.product});
+
+  @override
+  State<ProductDetailScreen> createState() => _ProductDetailScreenState();
+ }
+
+ class_ProductDetailScreenState extends State<ProductDetailScreenState>{
+  int quantity = 1;
+
+  @override
+  Widget build(BuildContext context){
+    return Scaffold(
+      backgroundColor: const Color(0xFFF2F6D0),
+      appBar: AppBar(
+        title: Text(widget.product.name, style: const TextStyle(fontsSize: 18, fontWeight: FontWeight.bold)),
+      ),
+      body: SignleChildScrollView(
+        child: Column(
+          children: [
+            Image.asset(
+              'asset/image/${widget.product.imageUrl}',
+              height: 350,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stactTrace){
+                return Container(
+                  height: 350,
+                  color: Colors.white,
+                  child: Column(
+                    mainAxisAlignment: mainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.image, color: Colors.grey, size: 60),
+                      const SizedBox(height: 8),
+                      Text('Asset Missing', style: TextStyle(color: Colors.grey.shade600)),
+                    ],
+                  ),
+                );
+              },
+            ),
+            
+            Transform.translate(
+              offset: const Offset(0, -20),
+              child: Container(
+                decoration: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+              ),
+              padding const EdgeInsets.all(24.0),
+              widht: double.infinity,
+              child: Column(
+                crossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    decoration: BoxDecortion(
+                      color: const Color(0xFFF2F6D0),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      widget.product.category.toUpperCase(),
+                      style: const TextStyle(
+                        color: Color(0xFF3D3522),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    widget.product.name,
+                    style: const TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF141301),
+                      height: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    widget.product.price,
+                    style: const TextWeight.w900,
+                    color: Color(0xFF3D3522),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children:[
+                      const Text(
+                        'Quantity:',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF141301)),
+                      ),
+                      const SizedBox(widht: 16),
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.remove, size: 20),
+                              onPressed: (){
+                                if(quantity>1){
+                                  setState(() => quantity--);
+                                }
+                              },
+                            ),
+                            Text(
+                              quantity.toString(),
+                              style: const TextStyle(fontSize: 16,
+                              fontWeight: FontWeight.bold),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.add, size: 20),
+                              onPressed: (){
+                                setState(() => quantity++);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Description',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF141301),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    widget.product.description.isNotEmpty
+                    ? widget.product.description
+                    : 'This high-grade ${widget.product.name} provides exceptional structural durability and reliability across a vast array of building and core masonry projects. It guarantees excellent binding properties alongside strict industrial standard compliance. Recomended heavily for high endurances requirements.',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      color: Colors.black87,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              offset: const Offset(0, -4),
+              blurRadius: 10,
+            )
+          ]
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              flex: 1,
+              child: OutlinedButton.icon(
+                onPressed: (){
+                  addToCartInFirestore(context, widget.product, quantity);
+                },
+                icon: const Icon(Icons.add_shopping_cart),
+                label: const Text('Cart', style: TextStyle(fontWeight: FontWeight.bold)),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF3D3522),
+                  side: const BorderSide(color: Color(0xF3D3522), width: 1.5),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 2,
+              child: ElevatedButton.icon(
+                onPressed: (){
+                  createOrderAndOpenWhatsApp(context, widget.product, quantity);
+                },
+                icon: const Icon(Icons.chat_bubble_outline),
+                label: const Text('Order Now', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF25D366),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+ }
+
+
