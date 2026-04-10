@@ -1051,4 +1051,81 @@ class ProfileScreen extends StatelessWidget{
   }
 }
 
+class Settings extends StatefulWidget{
+  const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettomgsScreemState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen>{
+  bool isDarkMode = false;
+  bool notifications = false;
+
+  @override
+  Widget build(BuildContext context){
+    return Scaffold(
+      backgroundColor: const Color(0xFFF2F6D0),
+      appBar: AppBar(
+        title: const Text('Settings', style: TextStyle(fontWeight: FontWeight.bold)),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16.0),
+        children:[
+          _buildSettingsWrapper(
+            SwitchListTile(
+              title: const Text('Dark Mode', style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF141301))),
+              activeColor: const Color(0xFF4A442D),
+              value: isDarkMode,
+              onChanged: (val) => setState(() => isDarkMode = val),
+            )
+          ),
+          const SizedBox(height: 12),
+          _buildSettingsWrapper(
+            SwitchListTile(
+              title: const Text('Notification', style: TextStyle(fontWeight: FontWeight.w600, color: Colors(0xFF141301))),
+              activeColor: const Color(0xFF4A442D),
+              value: notification,
+              onChanged: (val) => setState(() => notification = val),
+            )
+          ),
+          const SizedBox(height: 12),
+          _buildSettingsWrapper(
+            ListTile(
+              title: const Text('Language', style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF141301))),
+              trailing: const Text('English', style: TextStyle(color: Colors.black54)),
+              onTap: () {},
+            )
+          ),
+          const SizedBox(height: 12),
+          _buildSettingsWrapper(
+            ListTile(
+              title: const Text('About App', style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF141301))),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.black54),
+              onTap: (){},
+            )
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildSettingsWrapper(Widget child){
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ]
+      ),
+      child: child,
+    );
+  }
+}
+
 
