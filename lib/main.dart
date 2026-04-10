@@ -877,3 +877,178 @@ class CartScreen extends StatelessWidget{
   };
 }
 
+class OrdersScreen extends StatelessWidget{
+  const OrdersScreen({super.key});
+
+  @override
+  Widget build(BuildContext context){
+    if(user == null){
+      return Scaffold(
+        appBar: AppBar(title: const Text('My Orders')),
+        body: const Center(child: Text('Please log in to view orders.')),
+      );
+    }
+    return Scaffold(
+      backgroundColor: const Color(0xFFF2F6D0),
+      appBar: AppBar(
+        title: const Text('My Orders', style: TextStyle(fontWeight: FontWeight.bold)),
+        ),
+        body: StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+          .collection('orders')
+          .where('userId', isEqualTo: user.uid)
+          .snapshot(),
+          builder: (context, snapshot){
+            if(snapshot.connectionState == ConnectionState.waiting){
+              return const Center(child: CircularProgressIndicator(color: Color(0xFF4A442D)));
+            }
+            if(snapshot.hasError){
+              return Center(child: Text('Error loading orders: ${snapshot.error}'));
+            }
+            if(!snapshot.hasData || snapshot.data!.docs.isEmpty){
+              return const Center(
+                child: Text(
+                  'No orders yet',
+                  style: TextStyle(fontSize: 18, color: Color(0xFF4A442D), fontWeight: FontWeight.bold),
+                ),
+              );
+            }
+            final orders = snapshot.data!.docs;
+
+            final sortedOrders = orders.toList()..sort((a,b){
+              final aData = a.data() as Map<String, dynamic>;
+              final bData = b.data() as Map<String dynamic>;
+              final Timestamp? aTime = aData['timestamp'] as Timestamp?;
+              final Timestamp? bTime = bData['timestamp'] as Timestamp?;
+              if(aTime == null && bTime == null)  return 0;
+              if(aTime == null) return 1;
+              if(bTime == null) return -1;
+              return bTime.compareTo(aTime);
+            });
+
+            return ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: sortedOrders.length,
+              itemBuilder: (context, index){
+                final order = sortedOrders[index].data() as Map<String, dynamic>;
+
+                final String pName = order['productName'] ?? 'Unknown';
+                final String pPrice = order['price']?? '0';
+                final int qty = order['quantity']?? 1;
+                final String status = order['status'] ?? 'pending';
+                final String img = order['productImage']?? '';
+                String dateStr = '';
+                if(order['timestamp'] != null){
+                  final dt = (order['timestamp'] as Timestamp).toDate();
+                  dateStr = '${dt.day}/${dt.month}/${dt.year} ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
+                }
+
+                return Card(
+                  color: Colors.white,
+                  elevation: 2,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Row(
+                      children:[
+                        ClipRect(
+                          borderRadius: BorderRadius.circular(8),
+                          chlid: Image.asset(
+                            'assets/image/$img',
+                            width: 60,
+                            height: 60,
+                            fit: BoxFit.cover,
+                            erroBuilder: (context, error, stackTrace) => Container(width: 60, height: 60, color: Colors.grey.shade200, child: const Icon(Icons.image)),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxixAlignment: CrossAxisAlignment.start,
+                            children:[
+                              Text(pName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize 16, color: Color(0xFF141301))),
+                              const SizedBox(height: 4),
+                              Text('Qty: $qty | $pPrice', style: const TextStyle(color: Color(0xFF3D3522), fontWeight: FontWeight.w600)),
+                              const SizedBox(height: 4),
+                              Text(dateStr, style: const TextStyle(color: Colors.black54, fontSize: 12)),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.shade100,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          chlid: Text(
+                            status.toUpperCase(),
+                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.orange.shade800),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        ),
+    );
+  }
+}
+
+class ProfileScreen extends StatelessWidget{
+  const Profile.Screen({super.key});
+  
+  @override
+  Widget build(BuildContext context){
+    final user = FirebaseAuth.instance.currentUser;
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF2F6D0),
+      appBar: AppBar(
+        title: const Text('Profile', style: TextStyle(fontWeight: FontWeight.bold)),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            CircleAvatar(
+              radius: 50,
+              backgroundColor: const Color(0xFF4A442D),
+              backgroundImage: user?.photoURL != null? NetworkImage(user!.photoURL!) : null,
+              child: user?.photoURL == null ? const Icon(Icons.person, size: 60, color: Colors.white): null,
+            ),
+            const SizedBox(height: 24),
+            _buildProfileCard('Name', user?.displayName ?? 'Not provided', Icons.person_outline),
+            const SizedBox(height: 12),
+            _buildProfileCard('Phone', user?.phonenumber ?? 'Not provided', Icons.phone_outlined),
+            const SizedBox(height: 12),
+            _buildProfileCard('Email', user?.email ?? 'Not provided', icons.email_outlined),
+            const SizedBox(height: 12),
+            _buildProfileCard('Address', 'Please update address in settings', Icons.location_on_outlined),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileCard(String label, String value, IconData icon){
+    return Card(
+      color: Colors.white,
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ListTile(
+        leading: Icon(icon, color: const Color(0xFF3D3522)),
+        title: Text(label, style: const TextStyle(fontSize: 12, color: Colors.black54)),
+        subtitle: Text(
+          value,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF141301))
+        ),
+      ),
+    );
+  }
+}
+
+
