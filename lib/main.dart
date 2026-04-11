@@ -8,7 +8,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-// Helper for WhatsApp~
 Future<void> openWhatsApp(String productName, String price, int quantity) async {
   final String phoneNumber = "918707746094";
   final String message = "Hello, I want to place an order:\n\nProduct: $productName\nPrice: $price\nQuantity: $quantity\n\nPlease confirm availability.";
@@ -678,7 +677,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ),
                     const SizedBox(height: 20),
                     
-                    // Quantity Selector
                     Row(
                       children: [
                         const Text(
